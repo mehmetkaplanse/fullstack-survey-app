@@ -23,7 +23,8 @@ class User extends Authenticatable
         'email',
         'password',
         'google_id',
-        'avatar'
+        'avatar',
+        'is_used_ai',
     ];
 
     /**
@@ -48,4 +49,5 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
 }

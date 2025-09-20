@@ -22,7 +22,7 @@ class SurveyResource extends JsonResource
                 : null,
             'title' => $this->title,
             'slug' => $this->slug,
-            'status' => $this->status !== 'draft',
+            'status' => $this->status?->value,
             'description' => $this->description,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

@@ -22,6 +22,11 @@ class Survey extends Model
         'expire_date'
     ];
 
+    protected $casts = [
+        'status' => \App\Enums\SurveyStatus::class,
+    ];
+
+
     /**
      * @return SlugOptions
      */

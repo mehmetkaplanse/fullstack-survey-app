@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\UserRegistered;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
+use App\Notifications\WelcomeNotification;
 use App\Traits\ApiResponse;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
@@ -133,20 +136,21 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth-token')->plainTextToken;
+
         return response()->json([
             'status' => 'success',
             'token' => $token,
-            'user' => $user
+            'user' => UserResource::make($user)
         ]);
     }
 
     public function me(): JsonResponse
     {
         $user = Auth::guard('api')->user();
-
         if(!$user) {
             return $this->errorResponse('Not authenticated!', 401);
         }
         return $this->successResponse($user, null, 200);
     }
+
 }

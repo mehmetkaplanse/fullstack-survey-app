@@ -2,14 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\SurveyCreated;
 use App\Http\Resources\SurveyResource;
 use App\Models\Survey;
 use App\Http\Requests\StoreSurveyRequest;
 use App\Http\Requests\UpdateSurveyRequest;
 use App\Models\SurveyQuestion;
+use App\Notifications\SurveyCreatedNotification;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -19,9 +22,6 @@ use App\Enums\QuestionType;
 
 class SurveyController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $user = $request->user();
@@ -29,9 +29,6 @@ class SurveyController extends Controller
         return SurveyResource::collection($surveys);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreSurveyRequest $request)
     {
         $data = $request->validated();
@@ -46,6 +43,7 @@ class SurveyController extends Controller
             $this->createQuestion($question);
         }
 
+        event(new SurveyCreated($survey));
         return new SurveyResource($survey);
     }
 
@@ -78,10 +76,6 @@ class SurveyController extends Controller
         return $file;
     }
 
-
-    /**
-     * Display the specified resource.
-     */
     public function show(Survey $survey, Request $request)
     {
         $user = $request->user();
@@ -97,9 +91,6 @@ class SurveyController extends Controller
         return new SurveyResource($survey);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(UpdateSurveyRequest $request, Survey $survey)
     {
         $data = $request->validated();
@@ -147,9 +138,6 @@ class SurveyController extends Controller
         return new SurveyResource($survey);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Survey $survey, Request $request)
     {
         $user = $request->user();
@@ -197,5 +185,59 @@ class SurveyController extends Controller
         ]);
 
         return $question->update($validator->validated());
+    }
+
+
+    // generate new question with ai/ollama
+    public function generateAiQuestion(Request $request)
+    {
+        $prompt = $request->input('prompt');
+
+        $response = Http::post('http://127.0.0.1:11434/api/chat', [
+            'model' => 'mistral',
+            'messages' => [
+                [
+                    'role' => 'system',
+                    'content' => 'Sen bir anket asistanısın. Kullanıcının verdiği konuya uygun kısa ve net anket soruları üret.'
+                ],
+                [
+                    'role' => 'user',
+                    'content' => "Konu: {$prompt}. Bu konu hakkında 1 adet anket sorusu üret."
+                ]
+            ],
+            'stream' => false
+        ]);
+
+        if($response->failed()) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'AI servisi yanıt vermedi'
+            ], 500);
+        }
+
+        $content = $response->json('message.content');
+
+        return response()->json([
+            'status' => 'success',
+            'question' => trim($content)
+        ]);
+    }
+
+    public function setUsedAi(Request $request)
+    {
+        $user = $request->user();
+        if($user) {
+            $user->is_used_ai = true;
+            $user->save();
+            return response()->json([
+                'status' => 'success',
+                'message' => 'AI hakkınız kullanıldı.'
+            ]);
+        }
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Kullanıcı bulunamadı.'
+        ]);
+
     }
 }

@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\SurveyStatus;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class StoreSurveyRequest extends FormRequest
 {
@@ -25,7 +27,7 @@ class StoreSurveyRequest extends FormRequest
             'title' => 'required|string|max:1000',
             'image' => 'nullable|string',
             'user_id' => 'exists:users,id',
-            'status' => 'required|boolean',
+            'status' => ['required', new Enum(SurveyStatus::class)],
             'description' => 'nullable|string',
             'expire_date' => 'nullable|date|after:tomorrow',
             'questions' => 'array'
