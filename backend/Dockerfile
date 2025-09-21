@@ -20,6 +20,5 @@ RUN chmod -R 775 storage bootstrap/cache
 EXPOSE 8080
 
 # Container başlarken çalışacak komut
-CMD php artisan key:generate --force && \
-    php artisan migrate --force && \
+CMD php artisan migrate --force && \
     php artisan serve --host=0.0.0.0 --port=8080
