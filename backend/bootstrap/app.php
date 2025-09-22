@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\LogApiRequests;
 use App\Http\Middleware\CorsMiddleware;
+use Illuminate\Http\Middleware\HandleCors;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -15,9 +16,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         //$middleware->append(LogApiRequests::class);
-        $middleware->api(prepend: [
-            CorsMiddleware::class,
-        ]);
+        $middleware->append(HandleCors::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
