@@ -21,6 +21,7 @@ EXPOSE 8080
 
 # Container başlarken çalışacak komut
 CMD php artisan config:clear && \
+    php artisan optimize:clear && \
     php artisan cache:clear && \
     php artisan route:clear && \
     php artisan migrate --force && \
