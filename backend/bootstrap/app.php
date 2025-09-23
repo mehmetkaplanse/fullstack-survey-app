@@ -15,7 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         //$middleware->append(LogApiRequests::class);
-        $middleware->append(CorsMiddleware::class);
+        //$middleware->prepend(CorsMiddleware::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
