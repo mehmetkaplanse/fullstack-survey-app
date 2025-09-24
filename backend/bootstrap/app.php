@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         //$middleware->append(LogApiRequests::class);
         //$middleware->prepend(CorsMiddleware::class);
+        
+        // Laravel'in built-in CORS middleware'ini aktif edin
+        $middleware->api([
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
