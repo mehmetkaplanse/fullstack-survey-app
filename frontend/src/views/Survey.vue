@@ -186,16 +186,28 @@ const addQuestionWithAi = async () => {
     await api.post('/api/used-ai');
     */
     try {
-      const res = await api.post('/api/generate-ai-question', { prompt: survey_model.value.description || 'No description' });
-      if(res.status === 'success') {
-          toast.success(response.data.message || 'AI question generated');
-          scrollBottom();
+      const res = await api.post('/api/generate-ai-question', { prompt: survey_model.value.title || 'No description' });
+      const data = res.data || {};
+
+      if (data.status === 'success' && data.question) {
+          toast.success(data.message || 'AI question generated');
+          survey_model.value.questions.push({
+              id: null,
+              type: "text",
+              question: data.question,
+              description: "",
+              data: JSON.stringify({ options: [] }),
+          });
+          await scrollBottom();
+          // Eğer backend'e kullanım bildirimi gönderiyorsanız:
+          // await api.post('/api/used-ai');
+      } else {
+          toast.error(data.message || 'AI question generation failed');
       }
 
     } catch (error) {
       console.error('Error generating AI question:', error);
       toast.error(error.response?.data?.message || 'Error generating AI question');
-      loadingAi.value = false;
     } finally {
       loadingAi.value = false;
     }

@@ -188,40 +188,84 @@ class SurveyController extends Controller
     }
 
 
-    // generate new question with ai/ollama
+    /* generate new question with ai/ollama
     public function generateAiQuestion(Request $request)
     {
         $prompt = $request->input('prompt');
+        $apiKey = env('GEMINI_API_KEY');
 
-        $response = Http::post('http://127.0.0.1:11434/api/chat', [
-            'model' => 'mistral',
-            'messages' => [
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$apiKey}", [
+            'contents' => [
                 [
-                    'role' => 'system',
-                    'content' => 'Sen bir anket asistanısın. Kullanıcının verdiği konuya uygun kısa ve net anket soruları üret.'
-                ],
-                [
-                    'role' => 'user',
-                    'content' => "Konu: {$prompt}. Bu konu hakkında 1 adet anket sorusu üret."
+                    'parts' => [
+                        [
+                            'text' => "Sen bir anket asistanısın. Kullanıcının verdiği konuya uygun kısa ve net anket soruları üret. Konu: {$prompt}. Bu konu hakkında 1 adet anket sorusu üret."
+                        ]
+                    ]
                 ]
-            ],
-            'stream' => false
+            ]
         ]);
 
-        if($response->failed()) {
+        if ($response->failed()) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'AI servisi yanıt vermedi'
+                'message' => 'AI servisi yanıt vermedi',
             ], 500);
         }
 
-        $content = $response->json('message.content');
+        $data = $response->json();
+
+        // Gemini cevabı genelde şu yapıda döner:
+        // $data['candidates'][0]['content']['parts'][0]['text']
+        $content = $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Cevap alınamadı';
 
         return response()->json([
             'status' => 'success',
-            'question' => trim($content)
+            'question' => trim($content),
         ]);
     }
+    */
+
+    public function generateAiQuestion(Request $request)
+    {
+        $prompt = $request->input('prompt');
+        $apiKey = env('GEMINI_API_KEY');
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+        ])->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={$apiKey}", [
+            'contents' => [
+                [
+                    'parts' => [
+                        [
+                            'text' => "Sen bir anket asistanısın. Kullanıcının verdiği konuya uygun kısa ve net anket soruları üret. Konu: {$prompt}. Bu konu hakkında 1 adet anket sorusu üret. Şıklar olmadan sadece soru olacak."
+                        ]
+                    ]
+                ]
+            ]
+        ]);
+
+        if ($response->failed()) {
+            \Log::error($response->body());
+            return response()->json([
+                'status' => 'error',
+                'message' => 'AI servisi yanıt vermedi',
+            ], 500);
+        }
+
+        $data = $response->json();
+        $content = $data['candidates'][0]['content']['parts'][0]['text'] ?? 'Cevap alınamadı';
+
+        return response()->json([
+            'status' => 'success',
+            'question' => trim($content),
+        ]);
+    }
+
+
+
 
     public function setUsedAi(Request $request)
     {
