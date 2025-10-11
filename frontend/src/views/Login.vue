@@ -82,7 +82,7 @@ onMounted(async () => {
                 <button @click="handleGoogleLogin"
                     class="flex items-center gap-2 w-full justify-center rounded-md bg-white px-3 py-3 text-base font-semibold text-black cursor-pointer">
                     <icon icon="devicon:google" />
-                    Google ile Devam Ettttt
+                    Google ile Devam Et
                 </button>
             </div>
         </div>
