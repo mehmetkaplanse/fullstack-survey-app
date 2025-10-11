@@ -102,7 +102,7 @@ class AuthController extends Controller
             }
 
             $oauth_key = $google_user->token;
-            $clientUrl = 'http://localhost:5175';
+            $clientUrl = 'http://surveyclient.mekasoft.net.tr';
 
             return redirect($clientUrl.'/auth/callback?oauth_key='.$oauth_key);
         } catch (\Exception $e) {
